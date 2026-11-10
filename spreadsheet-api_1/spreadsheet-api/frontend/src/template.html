@@ -1,0 +1,681 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tax file resubmission</title>
+<script>
+  // Easy Group dark mode is an attribute. Follow the system setting, before first paint.
+  (function () {
+    var m = matchMedia('(prefers-color-scheme: dark)');
+    function set() { document.documentElement.setAttribute('data-theme', m.matches ? 'dark' : 'light'); }
+    set();
+    m.addEventListener('change', set);
+  })();
+</script>
+<style>
+/*FONTS*/
+/*TOKENS*/
+
+:root {
+  --ee-font-text: var(--font-text);
+  --ee-font-display: var(--font-display);
+  --t-xs: 0.7033rem; --t-sm: 0.8128rem; --t-base: 0.9375rem; --t-lg: 1.062rem;
+  --t-xl: 1.25rem; --t-2xl: 1.666rem; --t-3xl: 2.221rem;
+  --w-medium: 500; --w-semibold: 600; --w-bold: 700;
+  --mono: ui-monospace, "Cascadia Mono", "SF Mono", Consolas, "Liberation Mono", monospace;
+}
+
+* { box-sizing: border-box; }
+html { color-scheme: light; background: var(--ee-color-bg-page); }
+html[data-theme="dark"] { color-scheme: dark; }
+body {
+  margin: 0;
+  background: var(--ee-color-bg-page);
+  color: var(--ee-color-text-secondary);
+  font: 400 var(--t-base)/1.5 var(--font-text);
+  -webkit-font-smoothing: antialiased;
+}
+h1, h2, h3, p { margin: 0; }
+button, input { font: inherit; color: inherit; }
+[hidden] { display: none !important; }
+:focus-visible { outline: 2px solid var(--ee-color-border-accent); outline-offset: 2px; }
+.sr-only { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+.ic { width: 1.25rem; height: 1.25rem; flex: none; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+.page { max-width: 60rem; margin: 0 auto; padding: 1.5rem 1.5rem 7.5rem; display: flex; flex-direction: column; gap: 2rem; }
+@media (min-width: 640px) { .page { padding-top: 2.5rem; } }
+
+/* header */
+.brand { display: flex; align-items: center; gap: .75rem; margin-bottom: 1.5rem; }
+.brand img { height: 1.75rem; width: auto; display: block; }
+.brand .logo-dark { display: none; }
+html[data-theme="dark"] .brand .logo-light { display: none; }
+html[data-theme="dark"] .brand .logo-dark { display: block; }
+.brand .area { border-left: 1px solid var(--ee-color-border-strong); padding-left: .75rem; font-size: var(--t-xs); line-height: 1; font-weight: var(--w-semibold); letter-spacing: var(--ee-tracking-widest); text-transform: uppercase; color: var(--ee-color-text-tertiary); }
+h1 { font: 700 var(--t-3xl)/var(--ee-leading-tight) var(--font-display); letter-spacing: var(--ee-tracking-tight); color: var(--ee-color-text-primary); text-wrap: balance; }
+.lead { margin-top: .5rem; font-size: var(--t-lg); color: var(--ee-color-text-secondary); text-wrap: pretty; }
+
+/* surfaces */
+.card { background: var(--ee-color-bg-surface); border: 1px solid var(--ee-color-border-hairline); border-radius: var(--ee-radius-card); padding: 1.5rem; }
+.card.flush { padding: 0; overflow: hidden; }
+.meta { font-size: var(--t-sm); color: var(--ee-color-text-tertiary); }
+.label { font-size: var(--t-sm); font-weight: var(--w-semibold); color: var(--ee-color-text-tertiary); margin-bottom: .5rem; }
+h2 { font: 700 var(--t-xl)/var(--ee-leading-tight) var(--font-display); letter-spacing: var(--ee-tracking-tight); color: var(--ee-color-text-primary); text-wrap: balance; }
+.hint { margin-top: .25rem; max-width: 62ch; text-wrap: pretty; }
+
+/* buttons: pill, 1.5px border (Button) */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: .5rem;
+  height: var(--ee-control-height-sm); padding: 0 1rem;
+  border: 1.5px solid var(--ee-color-border-strong); border-radius: var(--ee-radius-pill);
+  background: transparent; color: var(--ee-color-text-primary);
+  font-weight: var(--w-bold); font-size: var(--t-base); line-height: 1; white-space: nowrap; cursor: pointer;
+  transition: border-color var(--ee-duration-fast) var(--ee-ease-standard), background-color var(--ee-duration-fast) var(--ee-ease-standard), transform var(--ee-duration-press) var(--ee-ease-standard);
+}
+.btn:hover:not(:disabled) { border-color: var(--ee-color-border-contrast); }
+.btn:active:not(:disabled) { transform: scale(var(--ee-press-scale)); }
+.btn-xs { height: var(--ee-control-height-xs); padding: 0 .75rem; font-size: var(--t-sm); }
+.btn-md { height: var(--ee-control-height-md); padding: 0 1.25rem; }
+.btn-primary { background: var(--ee-color-red-600); border-color: var(--ee-color-red-600); color: #fff; }
+.btn-primary:hover:not(:disabled) { background: var(--ee-color-red-700); border-color: var(--ee-color-red-700); }
+.btn:disabled { background: var(--ee-color-bg-muted); color: var(--ee-color-text-tertiary); border-color: var(--ee-color-border-hairline); cursor: not-allowed; }
+.btn-tertiary { border-color: transparent; color: var(--ee-color-text-accent); padding: 0 .5rem; }
+.btn-tertiary:hover:not(:disabled) { color: var(--ee-color-text-primary); border-color: transparent; }
+.btn-tertiary:disabled { background: transparent; border-color: transparent; }
+
+/* upload */
+.drop { display: flex; flex-direction: column; align-items: center; gap: .5rem; text-align: center; padding: 2rem 1.5rem; border: 1.5px dashed var(--ee-color-border-strong); border-radius: var(--ee-radius-card); background: var(--ee-color-bg-subtle); cursor: pointer; transition: border-color var(--ee-duration-fast) var(--ee-ease-standard), background-color var(--ee-duration-fast) var(--ee-ease-standard); }
+.drop:hover, .drop.over { border-color: var(--ee-color-border-accent); background: var(--ee-color-bg-accent-tint); }
+.drop input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+.drop:focus-within { outline: 2px solid var(--ee-color-border-accent); outline-offset: 2px; }
+.drop strong { font-size: var(--t-lg); line-height: 1.3; font-weight: var(--w-bold); color: var(--ee-color-text-primary); }
+.badge { display: grid; place-items: center; width: 3rem; height: 3rem; border-radius: 50%; background: var(--ee-color-bg-accent-tint); color: var(--ee-color-text-accent); margin-bottom: .25rem; }
+.badge .ic { width: 1.5rem; height: 1.5rem; }
+
+.alert { display: flex; align-items: flex-start; gap: .75rem; width: 100%; padding: .75rem 1rem; border-radius: var(--ee-radius-control); color: var(--ee-color-text-primary); background: var(--_bg); margin-top: 1rem; }
+.alert .ic { color: var(--_fg); margin-top: 1px; }
+.alert .t { display: block; font-weight: var(--w-bold); color: var(--_fg); }
+.alert.error { --_bg: var(--ee-color-bg-error-tint); --_fg: var(--ee-color-text-error); }
+.alert.success { --_bg: var(--ee-color-bg-success-tint); --_fg: var(--ee-color-text-success); }
+.alert.warning { --_bg: var(--ee-color-bg-warning-tint); --_fg: var(--ee-color-text-warning); }
+.alert .body { min-width: 0; flex: 1; }
+.alert pre { margin: .5rem 0 0; white-space: pre-wrap; word-break: break-word; font: 400 var(--t-sm)/1.5 var(--mono); color: var(--ee-color-text-primary); }
+.alert code { font-family: var(--mono); font-size: .92em; }
+
+.busy { display: inline-flex; align-items: center; gap: .75rem; margin-top: 1rem; color: var(--ee-color-text-tertiary); }
+.spinner { width: 1.25rem; height: 1.25rem; border-radius: 50%; border: 2px solid var(--ee-color-border-control); border-top-color: var(--ee-color-bg-accent); animation: spin var(--ee-duration-spinner) linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* claim card */
+.claim { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 1rem 1.5rem; }
+.fileline { display: flex; align-items: center; gap: 1rem; margin-left: auto; min-width: 0; }
+.fileicon { display: grid; place-items: center; width: 2.75rem; height: 2.75rem; flex: none; border-radius: var(--ee-radius-sm); background: var(--ee-color-bg-success-tint); color: var(--ee-color-text-success); }
+.fileline .name { font-weight: var(--w-bold); color: var(--ee-color-text-primary); line-height: 1.3; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 22rem; }
+
+/* fields */
+.field { display: flex; flex-direction: column; gap: .5rem; min-width: 0; }
+.field > label { font-weight: var(--w-semibold); font-size: var(--t-base); line-height: var(--ee-leading-tight); color: var(--ee-color-text-primary); }
+.input {
+  width: 100%; height: var(--ee-control-height-md); padding: 0 1rem;
+  background: var(--ee-color-bg-surface); color: var(--ee-color-text-primary);
+  border: 1.5px solid var(--ee-color-border-control); border-radius: var(--ee-radius-control);
+  line-height: var(--ee-leading-tight); min-width: 0;
+  transition: border-color var(--ee-duration-fast) var(--ee-ease-standard), box-shadow var(--ee-duration-fast) var(--ee-ease-standard);
+}
+.input::placeholder { color: var(--ee-color-text-placeholder); }
+.input:hover { border-color: var(--ee-color-border-strong); }
+.input:focus { outline: none; border-color: var(--ee-color-border-accent); box-shadow: var(--ee-shadow-focus); }
+.input[readonly] { background: var(--ee-color-bg-subtle); color: var(--ee-color-text-tertiary); }
+.input.num { font-variant-numeric: tabular-nums; }
+.claim .field { width: 12rem; }
+
+/* records */
+.list-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .75rem 1rem; padding: 1.5rem 1.5rem 1rem; }
+.rows { border-top: 1px solid var(--ee-color-border-hairline); }
+.cols, .row { display: grid; grid-template-columns: 13.5rem 1fr auto; gap: .5rem 1.5rem; align-items: center; padding: 0 1.5rem; }
+.cols { padding-top: .75rem; padding-bottom: .5rem; font-size: var(--t-sm); font-weight: var(--w-semibold); color: var(--ee-color-text-tertiary); border-bottom: 1px solid var(--ee-color-border-hairline); }
+.cols span:last-child { text-align: right; }
+.row { padding-top: 1rem; padding-bottom: 1rem; }
+.row + .row { border-top: 1px solid var(--ee-color-border-hairline); }
+.row .fid { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; }
+.row .id { font-weight: var(--w-bold); font-size: var(--t-lg); color: var(--ee-color-text-primary); font-variant-numeric: tabular-nums; line-height: 1.2; }
+.row .fname { display: block; margin-top: .125rem; font-size: var(--t-sm); color: var(--ee-color-text-tertiary); word-break: break-word; }
+.row .note { display: block; margin-top: .25rem; color: var(--ee-color-text-secondary); }
+.row[data-status="rejected"] .strip, .row[data-status="rejected"] .longval { opacity: .4; }
+.row .vmeta { margin-top: .5rem; font-size: var(--t-sm); color: var(--ee-color-text-tertiary); }
+.row .vmeta .was { margin-left: .75rem; }
+.row .vmeta .bad { color: var(--ee-color-text-error); font-weight: var(--w-semibold); }
+.row .act { display: flex; justify-content: flex-end; gap: .5rem; }
+
+.tag { display: inline-flex; align-items: center; padding: .125rem .625rem; border-radius: var(--ee-radius-pill); font-size: var(--t-xs); font-weight: var(--w-semibold); line-height: 1.4; background: var(--_bg); color: var(--_fg); }
+.tag.pending { --_bg: var(--ee-color-bg-warning-tint); --_fg: var(--ee-color-text-warning); }
+.tag.approved { --_bg: var(--ee-color-bg-success-tint); --_fg: var(--ee-color-text-success); }
+.tag.rejected { --_bg: var(--ee-color-bg-error-tint); --_fg: var(--ee-color-text-error); }
+.tag.added { --_bg: var(--ee-color-bg-accent-tint); --_fg: var(--ee-color-text-accent); }
+
+.seg { display: inline-flex; gap: .5rem; }
+.seg .btn[aria-pressed="true"].approve { background: var(--ee-color-bg-success-tint); border-color: var(--ee-color-border-success); color: var(--ee-color-text-success); }
+.seg .btn[aria-pressed="true"].reject { background: var(--ee-color-bg-error-tint); border-color: var(--ee-color-border-error); color: var(--ee-color-text-error); }
+
+/* the character strip: one cell per character of the fixed-width field */
+.strip { display: flex; flex-wrap: wrap; gap: 2px; font-family: var(--mono); font-size: var(--t-base); }
+.strip i { font-style: normal; display: inline-grid; place-items: center; width: .95rem; height: 1.6rem; border: 1px solid var(--ee-color-border-strong); border-radius: 4px; background: var(--ee-color-bg-surface); color: var(--ee-color-text-primary); line-height: 1; }
+.strip i.pad { background: var(--ee-color-bg-muted); border-color: transparent; color: var(--ee-color-text-tertiary); }
+.longval { font-family: var(--mono); font-size: var(--t-base); word-break: break-all; color: var(--ee-color-text-primary); }
+.longval .padrun { background: var(--ee-color-bg-muted); color: var(--ee-color-text-tertiary); padding: 1px .5rem; border-radius: var(--ee-radius-xs); margin-right: .5rem; }
+
+.empty { padding: 2rem 1.5rem; color: var(--ee-color-text-secondary); }
+
+/* add field */
+.addgrid { display: grid; grid-template-columns: minmax(11rem, 1.1fr) 7rem minmax(12rem, 1.6fr) auto; gap: 1rem; align-items: end; margin-top: 1.25rem; }
+.addmeta { margin-top: 1rem; min-height: 1.5rem; }
+.addmeta .desc { margin-top: .5rem; font-size: var(--t-sm); color: var(--ee-color-text-tertiary); }
+.fielderr { display: flex; align-items: flex-start; gap: .25rem; margin-top: .5rem; font-size: var(--t-sm); font-weight: var(--w-semibold); color: var(--ee-color-text-error); }
+.fielderr .ic { width: 1rem; height: 1rem; margin-top: 2px; }
+.vmeta2 { margin-top: .5rem; font-size: var(--t-sm); color: var(--ee-color-text-tertiary); }
+
+/* request details */
+details summary { cursor: pointer; font-weight: var(--w-bold); color: var(--ee-color-text-primary); display: flex; align-items: center; gap: .5rem; list-style: none; border-radius: var(--ee-radius-xs); }
+details summary::-webkit-details-marker { display: none; }
+details summary .ic { transition: transform var(--ee-duration-fast) var(--ee-ease-standard); }
+details[open] summary .ic { transform: rotate(90deg); }
+details .inner { margin-top: 1rem; display: grid; gap: 1.25rem; }
+details pre { margin: 0; padding: 1rem 1.25rem; background: var(--ee-color-bg-subtle); border: 1px solid var(--ee-color-border-hairline); border-radius: var(--ee-radius-md); font: 400 var(--t-sm)/1.6 var(--mono); max-height: 17rem; overflow: auto; color: var(--ee-color-text-primary); }
+.token { max-width: 26rem; }
+
+/* sticky bar */
+.bar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 20; background: var(--ee-color-bg-surface); border-top: 1px solid var(--ee-color-border-hairline); box-shadow: var(--ee-shadow-sheet); padding: .875rem 1.5rem calc(.875rem + env(safe-area-inset-bottom, 0px)); }
+.bar-in { max-width: 57rem; margin: 0 auto; display: flex; flex-wrap: wrap; align-items: center; gap: .5rem 1.5rem; }
+.counts { display: flex; flex-wrap: wrap; gap: .25rem 1.25rem; margin-right: auto; font-variant-numeric: tabular-nums; color: var(--ee-color-text-secondary); }
+.counts b { color: var(--ee-color-text-primary); font-weight: var(--w-bold); }
+.why { flex-basis: 100%; order: 3; font-size: var(--t-sm); color: var(--ee-color-text-tertiary); }
+
+/* dialog */
+dialog { border: 1px solid var(--ee-color-border-hairline); border-radius: var(--ee-radius-lg); padding: 0; width: min(36rem, calc(100vw - 2rem)); background: var(--ee-color-bg-overlay); color: var(--ee-color-text-secondary); box-shadow: var(--ee-shadow-4); }
+dialog::backdrop { background: var(--ee-color-bg-scrim); }
+dialog form { padding: 1.5rem; }
+dialog table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: var(--t-sm); }
+dialog th { text-align: left; font-weight: var(--w-semibold); color: var(--ee-color-text-tertiary); padding: .25rem .75rem .5rem 0; border-bottom: 1px solid var(--ee-color-border-hairline); white-space: nowrap; }
+dialog td { padding: .5rem .75rem .5rem 0; border-bottom: 1px solid var(--ee-color-border-hairline); vertical-align: top; color: var(--ee-color-text-primary); }
+dialog td.v { font-family: var(--mono); word-break: break-all; }
+dialog .scroll { max-height: 40vh; overflow: auto; }
+dialog menu { display: flex; justify-content: flex-end; gap: .5rem; padding: 0; margin: .5rem 0 0; }
+
+/* snackbar */
+.snack { position: fixed; left: 50%; bottom: 5.5rem; z-index: 60; transform: translate(-50%, .75rem); opacity: 0; pointer-events: none; display: inline-flex; align-items: center; gap: .75rem; max-width: calc(100vw - 2rem); padding: .8rem 1.4rem; border-radius: var(--ee-radius-pill); background: var(--ee-color-bg-inverse); color: #fff; box-shadow: var(--ee-shadow-2); font-weight: var(--w-semibold); line-height: 1.1; transition: opacity var(--ee-duration-base) var(--ee-ease-standard), transform var(--ee-duration-base) var(--ee-ease-standard); }
+.snack.show { opacity: 1; transform: translate(-50%, 0); }
+.snack .ic { color: var(--ee-color-teal-200); }
+
+@media (max-width: 760px) {
+  .cols { display: none; }
+  .row { grid-template-columns: 1fr; padding-left: 1rem; padding-right: 1rem; }
+  .row .act { justify-content: flex-start; }
+  .list-head { padding: 1.25rem 1rem .75rem; }
+  .addgrid { grid-template-columns: 1fr 1fr; }
+  .addgrid .value-field { grid-column: 1 / -1; }
+  .fileline { margin-left: 0; width: 100%; flex-wrap: wrap; }
+  .fileline .name { max-width: 14rem; }
+  .card { padding: 1.25rem 1rem; }
+  .card.flush { padding: 0; }
+  h1 { font-size: var(--t-2xl); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .spinner { animation-duration: 2s; }
+  .btn, .drop, .snack, details summary .ic { transition: none; }
+  .btn:active:not(:disabled) { transform: none; }
+}
+</style>
+</head>
+<body>
+<main class="page">
+  <header>
+    <div class="brand">
+      <img class="logo-light" src="__LOGO_LIGHT__" alt="EasyRetire">
+      <img class="logo-dark" src="__LOGO_DARK__" alt="EasyRetire">
+      <span class="area">Operations</span>
+    </div>
+    <h1>Tax file resubmission</h1>
+    <p class="lead">Upload a claim's tax file, check the highlighted fields, then resubmit the claim.</p>
+  </header>
+
+  <section class="card" id="upload" aria-labelledby="up-h">
+    <h2 class="sr-only" id="up-h">Upload tax file</h2>
+    <label class="drop" id="drop">
+      <input type="file" id="file" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">
+      <span class="badge" aria-hidden="true"><svg class="ic" viewBox="0 0 24 24"><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/><path d="M7 9l5-5l5 5"/><path d="M12 4l0 12"/></svg></span>
+      <strong>Drag and drop the tax file here</strong>
+      <span class="meta">Excel workbooks (.xlsx) only</span>
+      <span class="btn" style="margin-top:.5rem">Browse files</span>
+    </label>
+    <div class="busy" id="busy" role="status" hidden><span class="spinner" aria-hidden="true"></span>Reading the tax file…</div>
+    <div class="alert error" id="upload-error" role="alert" hidden>
+      <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 9v4"/><path d="M10.363 3.591l-8.106 13.534a1.914 1.914 0 0 0 1.636 2.871h16.214a1.914 1.914 0 0 0 1.636-2.87l-8.106-13.536a1.914 1.914 0 0 0-3.274 0z"/><path d="M12 16h.01"/></svg>
+      <span class="body" id="upload-error-text"></span>
+    </div>
+  </section>
+
+  <div id="review" hidden style="display:flex;flex-direction:column;gap:2rem">
+    <section class="card" aria-label="Claim and file">
+      <div class="claim">
+        <div class="field">
+          <label for="claim">Claim number</label>
+          <input class="input num" id="claim" inputmode="numeric" autocomplete="off">
+        </div>
+        <div class="fileline">
+          <div class="fileicon" aria-hidden="true"><svg class="ic" viewBox="0 0 24 24"><path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M17 21h-10a2 2 0 0 1-2-2v-14a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2z"/><path d="M8 11h8v7h-8z"/><path d="M8 15h8"/><path d="M11 11v7"/></svg></div>
+          <div style="min-width:0"><div class="name" id="filename"></div><div class="meta">Tax file</div></div>
+          <button class="btn btn-tertiary" id="reset" type="button">Choose another file</button>
+        </div>
+      </div>
+      <div class="alert warning" id="claim-warn" hidden>
+        <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 9v4"/><path d="M10.363 3.591l-8.106 13.534a1.914 1.914 0 0 0 1.636 2.871h16.214a1.914 1.914 0 0 0 1.636-2.87l-8.106-13.536a1.914 1.914 0 0 0-3.274 0z"/><path d="M12 16h.01"/></svg>
+        <span class="body">The claim number couldn't be read from the sheet name. Enter it before you resubmit.</span>
+      </div>
+    </section>
+
+    <section class="card flush" aria-labelledby="found-h">
+      <div class="list-head">
+        <div>
+          <h2 id="found-h">Fields to resubmit</h2>
+          <p class="meta" id="found-sub" style="margin-top:.25rem"></p>
+        </div>
+        <button class="btn" id="approve-all" type="button">Approve all pending</button>
+      </div>
+      <div class="rows" id="records-wrap">
+        <div class="cols" aria-hidden="true"><span>Field</span><span>New value</span><span>Decision</span></div>
+        <div id="records"></div>
+      </div>
+    </section>
+
+    <section class="card" aria-labelledby="add-h">
+      <h2 id="add-h">Add a field</h2>
+      <p class="hint">Pick a field from the tax file and enter its new value. The length comes from the tax file, and the value is padded to match.</p>
+      <form class="addgrid" id="add-form" autocomplete="off" novalidate>
+        <div class="field">
+          <label for="add-field">Tax file field ID</label>
+          <input class="input num" id="add-field" list="field-list" inputmode="numeric" placeholder="Type or pick" aria-describedby="add-desc">
+          <datalist id="field-list"></datalist>
+        </div>
+        <div class="field">
+          <label for="add-length">Length</label>
+          <input class="input num" id="add-length" readonly tabindex="-1">
+        </div>
+        <div class="field value-field">
+          <label for="add-value">New value</label>
+          <input class="input" id="add-value" spellcheck="false">
+        </div>
+        <button class="btn btn-md" type="submit">Add field</button>
+      </form>
+      <div class="addmeta">
+        <div id="add-preview"></div>
+        <div class="desc" id="add-desc"></div>
+        <div class="fielderr" id="add-error" role="alert" hidden><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 9v4"/><path d="M10.363 3.591l-8.106 13.534a1.914 1.914 0 0 0 1.636 2.871h16.214a1.914 1.914 0 0 0 1.636-2.87l-8.106-13.536a1.914 1.914 0 0 0-3.274 0z"/><path d="M12 16h.01"/></svg><span id="add-error-text"></span></div>
+      </div>
+    </section>
+
+    <section class="card">
+      <details>
+        <summary><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6l-6 6"/></svg>Request details</summary>
+        <div class="inner">
+          <div class="field token">
+            <label for="token">Access token</label>
+            <input class="input" id="token" type="password" autocomplete="off">
+            <span class="meta">Only needed if the API asks for one. It stays on this page and isn't saved.</span>
+          </div>
+          <div>
+            <p class="label">What will be sent</p>
+            <pre id="payload"></pre>
+          </div>
+        </div>
+      </details>
+      <div class="alert warning" id="config-warn" hidden>
+        <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 9v4"/><path d="M10.363 3.591l-8.106 13.534a1.914 1.914 0 0 0 1.636 2.871h16.214a1.914 1.914 0 0 0 1.636-2.87l-8.106-13.536a1.914 1.914 0 0 0-3.274 0z"/><path d="M12 16h.01"/></svg>
+        <span class="body">Resubmitting is switched off until the resubmit address is set. Add it as <code>resubmit.url</code> in the config at the top of this page's script.</span>
+      </div>
+    </section>
+
+    <div id="result" role="status" aria-live="polite"></div>
+  </div>
+</main>
+
+<div class="bar" id="bar" hidden>
+  <div class="bar-in">
+    <div class="counts" aria-live="polite">
+      <span><b id="n-approved">0</b> approved</span>
+      <span><b id="n-pending">0</b> pending</span>
+      <span><b id="n-rejected">0</b> rejected</span>
+    </div>
+    <button class="btn btn-md btn-primary" id="submit" type="button" disabled>Resubmit</button>
+    <p class="why" id="why"></p>
+  </div>
+</div>
+
+<dialog id="confirm" aria-labelledby="confirm-h">
+  <form method="dialog">
+    <h2 id="confirm-h"></h2>
+    <p class="hint" style="margin-top:.5rem">Check these before you continue. Dots in a value are spaces.</p>
+    <div class="scroll"><table>
+      <thead><tr><th>Field ID</th><th>Name</th><th>Value sent</th></tr></thead>
+      <tbody id="confirm-rows"></tbody>
+    </table></div>
+    <menu>
+      <button class="btn btn-md" value="cancel" type="submit">Cancel</button>
+      <button class="btn btn-md btn-primary" value="ok" id="confirm-ok" type="submit"></button>
+    </menu>
+  </form>
+</dialog>
+
+<div class="snack" id="snack" role="status" aria-live="polite"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l5 5l10-10"/></svg><span id="snack-text"></span></div>
+
+<script>
+/* ------------------------------------------------------------------ *
+ *  CONFIG — the only part of this file that depends on your systems.
+ *  Override any of it from a separate script that sets
+ *  window.TAX_RESUBMIT_CONFIG before this one runs.
+ * ------------------------------------------------------------------ */
+const CONFIG = Object.assign({
+  // Spring Boot service that reads the tax file
+  analyseUrl: 'http://localhost:8080/api/spreadsheet/analyse',
+
+  // The RISE resubmit call (Support_ResubmitClaimTaxFile).
+  // Copy the method and URL from the Swagger page, then make buildBody match its request model.
+  resubmit: {
+    url: '',            // e.g. 'https://api.rise.co.za/api/Support/ResubmitClaimTaxFile'
+    method: 'POST',
+  },
+
+  // What is sent. claimId is a string, records are [{ FieldId, Value }].
+  buildBody: (claimId, records) => ({
+    ClaimId: Number(claimId),
+    Fields: records.map(r => ({ FieldId: r.FieldId, Value: r.Value })),
+  }),
+}, window.TAX_RESUBMIT_CONFIG || {});
+
+/* ------------------------------ state ------------------------------ */
+const $ = (s) => document.querySelector(s);
+let analysis = null;      // response from the analyse endpoint
+let records = [];         // rows shown in the list
+let nextId = 1;
+let fileName = '';
+
+/* ------------------------------ helpers ---------------------------- */
+// Same padding rule as the server: Numeric -> leading zeros, Alphanumeric -> leading spaces.
+function padRule(validation) {
+  if (/\bnumeric\b/i.test(validation || '')) return '0';
+  if (/\balphanumeric\b/i.test(validation || '')) return ' ';
+  return null;
+}
+function pad(value, length, validation) {
+  const ch = padRule(validation);
+  if (!ch || value.length >= length) return { text: value, padChar: ch, padCount: 0 };
+  const n = length - value.length;
+  return { text: ch.repeat(n) + value, padChar: ch, padCount: n };
+}
+const kindLabel = (ch) => ch === '0' ? 'leading zeros' : ch === ' ' ? 'leading spaces' : '';
+const plural = (n, w) => `${n} ${w}${n === 1 ? '' : 's'}`;
+const norm = (s) => String(s).replace(/^[0 ]+/, '');
+
+const WARN_ICON = '<svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 9v4"/><path d="M10.363 3.591l-8.106 13.534a1.914 1.914 0 0 0 1.636 2.871h16.214a1.914 1.914 0 0 0 1.636-2.87l-8.106-13.536a1.914 1.914 0 0 0-3.274 0z"/><path d="M12 16h.01"/></svg>';
+const CHECK_ICON = '<svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l5 5l10-10"/></svg>';
+
+function el(tag, attrs = {}, ...kids) {
+  const e = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs)) {
+    if (k === 'class') e.className = v;
+    else if (k === 'text') e.textContent = v;
+    else if (k === 'html') e.innerHTML = v;
+    else if (k.startsWith('on')) e.addEventListener(k.slice(2), v);
+    else if (v === true) e.setAttribute(k, '');
+    else if (v !== false && v != null) e.setAttribute(k, v);
+  }
+  for (const kid of kids) if (kid != null) e.append(kid);
+  return e;
+}
+
+let toastTimer;
+function toast(msg) {
+  $('#snack-text').textContent = msg;
+  const s = $('#snack'); s.classList.add('show');
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => s.classList.remove('show'), 3200);
+}
+
+// One cell per character, padding drawn differently from the real value.
+function strip(rec) {
+  if (rec.length > 40) {
+    const wrap = el('div', { class: 'longval' });
+    if (rec.padCount) wrap.append(el('span', { class: 'padrun', text: `+${plural(rec.padCount, rec.padChar === '0' ? 'zero' : 'space')}` }));
+    wrap.append(document.createTextNode(rec.value.slice(rec.padCount)));
+    return wrap;
+  }
+  const s = el('div', { class: 'strip', role: 'img', 'aria-label': `Value "${rec.value}", ${plural(rec.value.length, 'character')}` });
+  [...rec.value].forEach((ch, i) => {
+    s.append(el('i', { class: i < rec.padCount ? 'pad' : '', 'aria-hidden': 'true', text: ch === ' ' ? '·' : ch }));
+  });
+  return s;
+}
+
+function meta(rec, cls = 'vmeta') {
+  const m = el('div', { class: cls });
+  let t = `${rec.value.length} of ${rec.length} characters`;
+  if (rec.padCount) t += `, ${kindLabel(rec.padChar)} added`;
+  m.append(t);
+  if (rec.original && norm(rec.original) !== norm(rec.value.trim()) && rec.source === 'file') {
+    m.append(el('span', { class: 'was', text: `Value column in file: ${rec.original}` }));
+  }
+  if (rec.value.length > rec.length) m.append(el('span', { class: 'was bad', text: `Longer than the ${rec.length} allowed` }));
+  return m;
+}
+
+/* ------------------------------ render ----------------------------- */
+const STATUS_LABEL = { pending: 'Pending', approved: 'Approved', rejected: 'Rejected' };
+
+function render() {
+  const list = $('#records');
+  list.replaceChildren();
+  $('.cols').hidden = !records.length;
+  if (!records.length) {
+    list.append(el('p', { class: 'empty', text: 'No highlighted rows found. Check that rows are filled with a colour, not conditional formatting, or add the fields you need below.' }));
+  }
+  for (const rec of records) {
+    const field = el('div', {},
+      el('div', { class: 'fid' },
+        el('span', { class: 'id', text: String(rec.fieldId) }),
+        el('span', { class: 'tag ' + (rec.source === 'added' ? 'added' : rec.status), text: rec.source === 'added' ? 'Added' : STATUS_LABEL[rec.status] })),
+      el('span', { class: 'fname', text: [rec.name, rec.validation].filter(Boolean).join(' · ') }),
+      rec.comment ? el('span', { class: 'note', text: rec.comment }) : null);
+    const value = el('div', {}, strip(rec), meta(rec));
+
+    let actions;
+    if (rec.source === 'added') {
+      actions = el('div', { class: 'act' },
+        el('button', { class: 'btn btn-tertiary', type: 'button', text: 'Remove', onclick: () => { records = records.filter(r => r.id !== rec.id); render(); } }));
+    } else {
+      const set = (status) => () => { rec.status = rec.status === status ? 'pending' : status; render(); };
+      actions = el('div', { class: 'act' },
+        el('div', { class: 'seg', role: 'group', 'aria-label': `Decision for field ${rec.fieldId}` },
+          el('button', { class: 'btn approve', type: 'button', 'aria-pressed': String(rec.status === 'approved'), text: 'Approve', onclick: set('approved') }),
+          el('button', { class: 'btn reject', type: 'button', 'aria-pressed': String(rec.status === 'rejected'), text: 'Reject', onclick: set('rejected') })));
+    }
+    list.append(el('article', { class: 'row', 'data-status': rec.status }, field, value, actions));
+  }
+
+  const fromFile = records.filter(r => r.source === 'file').length;
+  const added = records.length - fromFile;
+  $('#found-sub').textContent = `${plural(fromFile, 'highlighted row')} found in the file` + (added ? `, ${added} added` : '');
+  $('#approve-all').disabled = !records.some(r => r.status === 'pending');
+  updateBar();
+}
+
+function approved() { return records.filter(r => r.status === 'approved'); }
+function payload() {
+  return CONFIG.buildBody($('#claim').value.trim(), approved().map(r => ({ FieldId: r.fieldId, Value: r.value })));
+}
+
+function updateBar() {
+  const a = approved().length, p = records.filter(r => r.status === 'pending').length, x = records.filter(r => r.status === 'rejected').length;
+  $('#n-approved').textContent = a; $('#n-pending').textContent = p; $('#n-rejected').textContent = x;
+
+  const claim = $('#claim').value.trim();
+  const configured = !!(CONFIG.resubmit && CONFIG.resubmit.url);
+  const tooLong = records.find(r => r.status === 'approved' && r.value.length > r.length);
+  let why = '';
+  if (!configured) why = 'Resubmitting is switched off until the resubmit address is set.';
+  else if (!claim) why = 'Enter the claim number.';
+  else if (p) why = `Approve or reject the ${plural(p, 'pending field')} first.`;
+  else if (!a) why = 'Approve or add at least one field.';
+  else if (tooLong) why = `Field ${tooLong.fieldId} is longer than its allowed length.`;
+  $('#submit').disabled = !!why;
+  $('#why').textContent = why;
+  $('#why').hidden = !why;
+  $('#config-warn').hidden = configured;
+  $('#claim-warn').hidden = !!claim;
+  $('#submit').textContent = a ? `Resubmit ${plural(a, 'field')}` : 'Resubmit';
+  $('#payload').textContent = (configured ? `${CONFIG.resubmit.method || 'POST'} ${CONFIG.resubmit.url}\n\n` : '') + JSON.stringify(payload(), null, 2);
+}
+
+/* ----------------------------- upload ------------------------------ */
+async function analyse(file) {
+  $('#upload-error').hidden = true;
+  if (!/\.xlsx$/i.test(file.name)) { showUploadError('That file isn\'t an .xlsx. Save the tax file as an Excel workbook (.xlsx) and try again.'); return; }
+  $('#busy').hidden = false;
+  try {
+    const fd = new FormData(); fd.append('file', file);
+    const res = await fetch(CONFIG.analyseUrl, { method: 'POST', body: fd });
+    if (!res.ok) {
+      let msg = ''; try { const j = await res.json(); msg = j.message || j.error || ''; } catch { /* not JSON */ }
+      throw new Error(`The tax file couldn't be read (error ${res.status}).${msg ? ' ' + msg : ''} Check the first row has TaxFileFieldId, Length and Validation headings.`);
+    }
+    analysis = await res.json();
+    fileName = file.name;
+    start();
+  } catch (e) {
+    showUploadError(e instanceof TypeError
+      ? `Can't reach the tax file service at ${CONFIG.analyseUrl}. Check that it's running.`
+      : e.message);
+  } finally { $('#busy').hidden = true; }
+}
+function showUploadError(msg) { $('#upload-error-text').textContent = msg; $('#upload-error').hidden = false; }
+
+function start() {
+  records = (analysis.Found || []).map(f => {
+    const padCount = Math.max(0, f.Value.length - (f.NewValue ?? f.Value).length);
+    return { id: nextId++, fieldId: f.FieldId, name: f.Name, length: f.Length, validation: f.Validation,
+             original: f.OriginalValue, comment: f.Comment, value: f.Value, padCount, padChar: padRule(f.Validation),
+             source: 'file', status: 'pending' };
+  });
+  $('#claim').value = analysis.ClaimId || '';
+  $('#filename').textContent = fileName;
+  $('#field-list').replaceChildren(...(analysis.Fields || []).map(f =>
+    el('option', { value: String(f.FieldId), label: `${f.Name} · length ${f.Length}${f.Validation ? ' · ' + f.Validation : ''}` })));
+  $('#upload').hidden = true; $('#review').hidden = false; $('#bar').hidden = false;
+  $('#result').replaceChildren();
+  clearAdd(); render();
+}
+
+function reset() {
+  analysis = null; records = []; $('#file').value = '';
+  $('#upload').hidden = false; $('#review').hidden = true; $('#bar').hidden = true;
+  window.scrollTo({ top: 0 });
+}
+
+/* ----------------------------- add field --------------------------- */
+function lookup() {
+  const id = $('#add-field').value.trim();
+  return (analysis?.Fields || []).find(f => String(f.FieldId) === id) || null;
+}
+function clearAdd() {
+  $('#add-field').value = ''; $('#add-value').value = ''; $('#add-length').value = '';
+  $('#add-preview').replaceChildren(); $('#add-desc').textContent = ''; addError('');
+}
+function addError(msg) { $('#add-error-text').textContent = msg || ''; $('#add-error').hidden = !msg; }
+
+function updateAdd() {
+  addError('');
+  const f = lookup();
+  $('#add-length').value = f ? f.Length : '';
+  const prev = $('#add-preview'); prev.replaceChildren();
+  const desc = $('#add-desc');
+  if (!f) { desc.textContent = $('#add-field').value.trim() ? 'That field ID isn\'t in this tax file.' : ''; return; }
+  const ch = padRule(f.Validation);
+  desc.textContent = `${f.Name} · ${f.Validation || 'no validation'}` +
+    (ch ? ` · short values get ${kindLabel(ch)} added` : ' · value is sent as typed');
+  const v = $('#add-value').value.trim();
+  if (v) {
+    const p = pad(v, f.Length, f.Validation);
+    const r = { value: p.text, padCount: p.padCount, padChar: p.padChar, length: f.Length, source: 'added' };
+    prev.append(strip(r), meta(r, 'vmeta2'));
+  }
+}
+
+function addRecord(e) {
+  e.preventDefault(); addError('');
+  const f = lookup();
+  const v = $('#add-value').value.trim();
+  if (!$('#add-field').value.trim()) return addError('Pick a tax file field ID.');
+  if (!f) return addError('That field ID isn\'t in this tax file. Pick one from the list.');
+  if (!v) return addError('Enter the new value.');
+  if (/\bnumeric\b/i.test(f.Validation) && !/^\d+$/.test(v)) return addError(`Field ${f.FieldId} is numeric. Use digits only.`);
+  if (v.length > f.Length) return addError(`That value is ${plural(v.length, 'character')} and field ${f.FieldId} allows ${f.Length}.`);
+  const p = pad(v, f.Length, f.Validation);
+  records.push({ id: nextId++, fieldId: f.FieldId, name: f.Name, length: f.Length, validation: f.Validation,
+                 original: '', comment: '', value: p.text, padCount: p.padCount, padChar: p.padChar,
+                 source: 'added', status: 'approved' });
+  clearAdd(); render(); $('#add-field').focus();
+  toast(`Field ${f.FieldId} added`);
+}
+
+/* ----------------------------- resubmit ---------------------------- */
+function openConfirm() {
+  const claim = $('#claim').value.trim();
+  $('#confirm-h').textContent = `Resubmit claim ${claim}?`;
+  $('#confirm-ok').textContent = `Resubmit claim ${claim}`;
+  $('#confirm-rows').replaceChildren(...approved().map(r =>
+    el('tr', {}, el('td', { text: String(r.fieldId) }), el('td', { text: r.name || '' }), el('td', { class: 'v', text: r.value.replace(/ /g, '·') }))));
+  $('#confirm').showModal();
+}
+
+async function resubmit() {
+  const claim = $('#claim').value.trim();
+  const btn = $('#submit'); btn.disabled = true; btn.textContent = 'Resubmitting…';
+  const out = $('#result'); out.replaceChildren();
+  try {
+    const headers = { 'Content-Type': 'application/json', 'Accept': 'application/json' };
+    const token = $('#token').value.trim();
+    if (token) headers.Authorization = 'Bearer ' + token;
+    const res = await fetch(CONFIG.resubmit.url, { method: CONFIG.resubmit.method || 'POST', headers, body: JSON.stringify(payload()) });
+    const body = await res.text();
+    if (!res.ok) throw Object.assign(new Error(`The API refused the request (error ${res.status}).`), { body });
+    out.append(el('div', { class: 'alert success', style: 'margin-top:0' }, el('span', { html: CHECK_ICON }),
+      el('div', { class: 'body' }, el('span', { class: 't', text: `Claim ${claim} resubmitted` }), body ? el('pre', { text: body.slice(0, 1500) }) : null)));
+    toast(`Claim ${claim} resubmitted`);
+  } catch (e) {
+    const msg = e instanceof TypeError
+      ? 'Couldn\'t reach the resubmit API. Check your connection, or ask the developer whether the API allows requests from this page (CORS).'
+      : e.message;
+    out.append(el('div', { class: 'alert error', role: 'alert', style: 'margin-top:0' }, el('span', { html: WARN_ICON }),
+      el('div', { class: 'body' }, el('span', { class: 't', text: 'Resubmit failed' }), msg, e.body ? el('pre', { text: String(e.body).slice(0, 1500) }) : null)));
+  } finally {
+    updateBar();
+    out.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+}
+
+/* ----------------------------- wiring ------------------------------ */
+const drop = $('#drop');
+$('#file').addEventListener('change', (e) => { if (e.target.files[0]) analyse(e.target.files[0]); });
+['dragenter', 'dragover'].forEach(t => drop.addEventListener(t, (e) => { e.preventDefault(); drop.classList.add('over'); }));
+['dragleave', 'drop'].forEach(t => drop.addEventListener(t, (e) => { e.preventDefault(); drop.classList.remove('over'); }));
+drop.addEventListener('drop', (e) => { const f = e.dataTransfer.files[0]; if (f) analyse(f); });
+
+$('#reset').addEventListener('click', reset);
+$('#claim').addEventListener('input', updateBar);
+$('#approve-all').addEventListener('click', () => { records.forEach(r => { if (r.status === 'pending') r.status = 'approved'; }); render(); });
+$('#add-field').addEventListener('input', updateAdd);
+$('#add-value').addEventListener('input', updateAdd);
+$('#add-form').addEventListener('submit', addRecord);
+$('#submit').addEventListener('click', openConfirm);
+$('#confirm').addEventListener('close', () => { if ($('#confirm').returnValue === 'ok') resubmit(); });
+</script>
+</body>
+</html>
