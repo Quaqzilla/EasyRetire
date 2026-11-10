@@ -664,7 +664,9 @@ dialog menu { display: flex; justify-content: flex-end; gap: .5rem; padding: 0; 
  * ------------------------------------------------------------------ */
 const CONFIG = Object.assign({
   // Spring Boot service that reads the tax file
-  analyseUrl: 'http://localhost:8080/api/spreadsheet/analyse',
+  analyseUrl: location.protocol === 'file:'
+  ? 'http://localhost:8080/api/spreadsheet/analyse'
+  : '/api/spreadsheet/analyse',
 
   // The RISE resubmit call (Support_ResubmitClaimTaxFile).
   // Copy the method and URL from the Swagger page, then make buildBody match its request model.
