@@ -664,22 +664,17 @@ dialog menu { display: flex; justify-content: flex-end; gap: .5rem; padding: 0; 
  * ------------------------------------------------------------------ */
 const CONFIG = Object.assign({
   // Spring Boot service that reads the tax file
-  analyseUrl: location.protocol === 'file:'
-  ? 'http://localhost:8080/api/spreadsheet/analyse'
-  : '/api/spreadsheet/analyse',
+  analyseUrl: location.protocol === 'file:' ? 'http://localhost:8080/api/spreadsheet/analyse' : '/api/spreadsheet/analyse',
 
   // The RISE resubmit call (Support_ResubmitClaimTaxFile).
   // Copy the method and URL from the Swagger page, then make buildBody match its request model.
   resubmit: {
-    url: 'https://api.rise.co.za/swagger/ui/index#!/Support/Support_ResubmitClaimTaxFile',            // e.g. 'https://api.rise.co.za/api/Support/ResubmitClaimTaxFile'
+    url: location.protocol === 'file:' ? 'http://localhost:8080/api/spreadsheet/resubmit' : '/api/spreadsheet/resubmit', // our service, which calls RISE
     method: 'POST',
   },
 
   // What is sent. claimId is a string, records are [{ FieldId, Value }].
-  buildBody: (claimId, records) => ({
-    ClaimId: Number(claimId),
-    Fields: records.map(r => ({ FieldId: r.FieldId, Value: r.Value })),
-  }),
+  buildBody: (claimId, records) => records.map(r => ({ FieldId: r.FieldId, Value: r.Value })),
 }, window.TAX_RESUBMIT_CONFIG || {});
 
 /* ------------------------------ state ------------------------------ */
@@ -766,6 +761,7 @@ function render() {
   $('.cols').hidden = !records.length;
   if (!records.length) {
     list.append(el('p', { class: 'empty', text: 'No highlighted rows found. Check that rows are filled with a colour, not conditional formatting, or add the fields you need below.' }));
+    for (const n of (analysis?.Notes || [])) list.append(el('p', { class: 'empty', style: 'padding-top:0', text: n }));
   }
   for (const rec of records) {
     const field = el('div', {},
@@ -821,7 +817,7 @@ function updateBar() {
   $('#config-warn').hidden = configured;
   $('#claim-warn').hidden = !!claim;
   $('#submit').textContent = a ? `Resubmit ${plural(a, 'field')}` : 'Resubmit';
-  $('#payload').textContent = (configured ? `${CONFIG.resubmit.method || 'POST'} ${CONFIG.resubmit.url}\n\n` : '') + JSON.stringify(payload(), null, 2);
+  $('#payload').textContent = (configured ? `${CONFIG.resubmit.method || 'POST'} ${CONFIG.resubmit.url}?claimId=${claim}\n\n` : '') + JSON.stringify(payload(), null, 2);
 }
 
 /* ----------------------------- upload ------------------------------ */
@@ -932,8 +928,8 @@ async function resubmit() {
   try {
     const headers = { 'Content-Type': 'application/json', 'Accept': 'application/json' };
     const token = $('#token').value.trim();
-    if (token) headers.Authorization = 'Bearer ' + token;
-    const res = await fetch(CONFIG.resubmit.url, { method: CONFIG.resubmit.method || 'POST', headers, body: JSON.stringify(payload()) });
+    if (token) headers['X-Rise-Token'] = token;
+    const res = await fetch(`${CONFIG.resubmit.url}?claimId=${encodeURIComponent(claim)}`, { method: CONFIG.resubmit.method || 'POST', headers, body: JSON.stringify(payload()) });
     const body = await res.text();
     if (!res.ok) throw Object.assign(new Error(`The API refused the request (error ${res.status}).`), { body });
     out.append(el('div', { class: 'alert success', style: 'margin-top:0' }, el('span', { html: CHECK_ICON }),
@@ -941,7 +937,7 @@ async function resubmit() {
     toast(`Claim ${claim} resubmitted`);
   } catch (e) {
     const msg = e instanceof TypeError
-      ? 'Couldn\'t reach the resubmit API. Check your connection, or ask the developer whether the API allows requests from this page (CORS).'
+      ? 'Couldn\'t reach the tax file service. Check your connection and try again.'
       : e.message;
     out.append(el('div', { class: 'alert error', role: 'alert', style: 'margin-top:0' }, el('span', { html: WARN_ICON }),
       el('div', { class: 'body' }, el('span', { class: 't', text: 'Resubmit failed' }), msg, e.body ? el('pre', { text: String(e.body).slice(0, 1500) }) : null)));
